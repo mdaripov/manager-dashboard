@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика Работы Менеджеров</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        /* УРОВЕНЬ 0: Фильтры */
+        .filters {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+
+        .filter-group select:hover,
+        .filter-group input:hover {
+            border-color: #667eea;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-reset {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 22px;
+        }
+
+        .btn-reset:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        /* УРОВЕНЬ 1: KPI */
+        .kpi-section {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .kpi-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .kpi-card .value {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .kpi-card .trend {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* УРОВЕНЬ 2: Таблица менеджеров */
+        .managers-section {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #212529;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        th:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        th::after {
+            content: ' ⇅';
+            opacity: 0.5;
+            font-size: 12px;
+        }
+
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+        }
+
+        tbody tr.selected {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+        }
+
+        .manager-name {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .manager-name:hover {
+            text-decoration: underline;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-bad {
+            background: #fee;
+            color: #c00;
+        }
+
+        .status-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .critical-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* УРОВЕНЬ 3: Список диалогов */
+        .dialogs-section {
+            padding: 30px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .dialogs-section.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateX(-5px);
+        }
+
+        .btn-view {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-view:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        /* УРОВЕНЬ 4: Модальное окно с анализом */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .info-block {
+            margin-bottom: 30px;
+        }
+
+        .info-block h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #212529;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-item label {
+            font-size: 12px;
+            color: #6c757d;
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .info-item .value {
+            font-size: 16px;
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .transcript {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .transcript-line {
+            margin-bottom: 15px;
+        }
+
+        .transcript-line.manager {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .transcript-line.client {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .error-highlight {
+            background: #ffe6e6;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .error-list {
+            list-style: none;
+        }
+
+        .error-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .error-item.critical {
+            background: #ffe6e6;
+            border-color: #dc3545;
+        }
+
+        .error-item.warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .error-item .icon {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .recommendation {
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .recommendation strong {
+            color: #155724;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                width: 100%;
+            }
+
+            .kpi-section {
+                grid-template-columns: 1fr;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="header">
+            <h1>📊 Аналитика Работы Менеджеров</h1>
+            <p>Мониторинг качества обслуживания и эффективности команды</p>
+        </div>
+
+        <!-- УРОВЕНЬ 0: Фильтры -->
+        <div class="filters">
+            <div class="filter-group">
+                <label>📅 Период</label>
+                <select id="dateFilter">
+                    <option value="today">Сегодня</option>
+                    <option value="7days" selected>7 дней</option>
+                    <option value="30days">30 дней</option>
+                    <option value="custom">Выбрать диапазон</option>
+                </select>
+            </div>
+
+            <div class="filter-group" id="customDateGroup" style="display: none;">
+                <label>От - До</label>
+                <input type="date" id="dateFrom">
+                <input type="date" id="dateTo">
+            </div>
+
+            <div class="filter-group">
+                <label>👤 Менеджер</label>
+                <select id="managerFilter">
+                    <option value="all">Все менеджеры</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>⭐ Статус</label>
+                <select id="statusFilter">
+                    <option value="all">Все статусы</option>
+                    <option value="bad">🔴 Плохо</option>
+                    <option value="medium">🟡 Средне</option>
+                    <option value="good">🟢 Отлично</option>
+                </select>
+            </div>
+
+            <button class="btn-reset" onclick="resetFilters()">Сбросить</button>
+        </div>
+
+        <!-- УРОВЕНЬ 1: KPI -->
+        <div class="kpi-section" id="kpiSection">
+            <div class="kpi-card">
+                <h3>Всего диалогов</h3>
+                <div class="value" id="kpiTotalDialogs">0</div>
+                <div class="trend">за выбранный период</div>
+            </div>
+
+            <div class="kpi-card">
+                <h3>Средняя оценка</h3>
+                <div class="value" id="kpiAvgScore">0%</div>
+                <div class="trend">по всем диалогам</div>
+            </div>
+
+            <div class="kpi-card">
+                <h3>Крит. ошибки</h3>
+                <div class="value" id="kpiCriticalErrors">0</div>
+                <div class="trend">требуют внимания</div>
+            </div>
+
+            <div class="kpi-card">
+                <h3>Без ошибок</h3>
+                <div class="value" id="kpiNoErrors">0%</div>
+                <div class="trend">показатель здоровья</div>
+            </div>
+        </div>
+
+        <!-- УРОВЕНЬ 2: Таблица менеджеров -->
+        <div class="managers-section" id="managersSection">
+            <h2 class="section-title">👥 Показатели по менеджерам</h2>
+            <div class="table-container">
+                <table id="managersTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Менеджер (ФИО)</th>
+                            <th onclick="sortTable(1)">Кол-во диалогов</th>
+                            <th onclick="sortTable(2)">Средняя оценка %</th>
+                            <th onclick="sortTable(3)">Статус "Плохо"</th>
+                            <th onclick="sortTable(4)">Статус "Средне"</th>
+                            <th onclick="sortTable(5)">Статус "Отлично"</th>
+                            <th onclick="sortTable(6)">% Крит. ошибок</th>
+                        </tr>
+                    </thead>
+                    <tbody id="managersTableBody">
+                        <!-- Данные загружаются динамически -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- УРОВЕНЬ 3: Список диалогов -->
+        <div class="dialogs-section" id="dialogsSection">
+            <button class="back-btn" onclick="backToManagers()">← Вернуться к списку менеджеров</button>
+            <h2 class="section-title" id="dialogsTitle">📞 Список диалогов</h2>
+            <div class="table-container">
+                <table id="dialogsTable">
+                    <thead>
+                        <tr>
+                            <th>ID диалога</th>
+                            <th>Менеджер</th>
+                            <th>Дата</th>
+                            <th>Оценка %</th>
+                            <th>Статус</th>
+                            <th>Крит. ошибки</th>
+                            <th>Отчет</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dialogsTableBody">
+                        <!-- Данные загружаются динамически -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- УРОВЕНЬ 4: Модальное окно анализа диалога -->
+        <div class="modal" id="dialogModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Анализ диалога</h2>
+                    <button class="close-btn" onclick="closeModal()">×</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Контент загружается динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // КОНФИГУРАЦИЯ N8N
+        // ========================================
+        const N8N_CONFIG = {
+            // ЗАМЕНИТЕ на ваш реальный URL webhook из n8n
+            WEBHOOK_URL: 'https://your-n8n-instance.com/webhook/dashboard-data',
+            
+            // Если требуется аутентификация
+            AUTH_TOKEN: '', // Оставьте пустым если не нужен
+        };
+
+        // ========================================
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        // ========================================
+        let allData = {
+            managers: [],
+            dialogs: []
+        };
+        let currentManagerId = null;
+        let sortColumn = -1;
+        let sortAscending = true;
+
+        // ========================================
+        // ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+        // ========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDateFilters();
+            loadDataFromN8N();
+            
+            // Слушатели событий для фильтров
+            document.getElementById('dateFilter').addEventListener('change', handleDateFilterChange);
+            document.getElementById('dateFrom').addEventListener('change', applyFilters);
+            document.getElementById('dateTo').addEventListener('change', applyFilters);
+            document.getElementById('managerFilter').addEventListener('change', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        });
+
+        // ========================================
+        // ЗАГРУЗКА ДАННЫХ ИЗ N8N
+        // ========================================
+        async function loadDataFromN8N() {
+            try {
+                showLoading();
+                
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Добавляем токен если он указан
+                if (N8N_CONFIG.AUTH_TOKEN) {
+                    headers['Authorization'] = `Bearer ${N8N_CONFIG.AUTH_TOKEN}`;
+                }
+
+                const response = await fetch(N8N_CONFIG.WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        action: 'getDashboardData',
+                        filters: getCurrentFilters()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Сохраняем данные
+                allData = data;
+                
+                // Обновляем интерфейс
+                updateManagerFilter(data.managers);
+                updateKPI(data);
+                updateManagersTable(data.managers);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки данных из n8n:', error);
+                showErrorMessage('Не удалось загрузить данные. Используются демо-данные.');
+                loadDemoData(); // Загружаем демо-данные для примера
+            }
+        }
+
+        // ========================================
+        // ДЕМО-ДАННЫЕ (для тестирования без n8n)
+        // ========================================
+        function loadDemoData() {
+            allData = {
+                managers: [
+                    {
+                        id: 1,
+                        name: 'Никита Глушаков',
+                        totalDialogs: 178,
+                        avgScore: 45,
+                        statusBad: 80,
+                        statusMedium: 78,
+                        statusGood: 20,
+                        criticalErrorsPercent: 45
+                    },
+                    {
+                        id: 2,
+                        name: 'Антон Акимов',
+                        totalDialogs: 24,
+                        avgScore: 38,
+                        statusBad: 18,
+                        statusMedium: 5,
+                        statusGood: 1,
+                        criticalErrorsPercent: 75
+                    },
+                    {
+                        id: 3,
+                        name: 'Константин Орлов',
+                        totalDialogs: 56,
+                        avgScore: 72,
+                        statusBad: 10,
+                        statusMedium: 15,
+                        statusGood: 31,
+                        criticalErrorsPercent: 18
+                    }
+                ],
+                dialogs: [
+                    {
+                        id: 135889741,
+                        managerId: 1,
+                        managerName: 'Никита Глушаков',
+                        date: '2025-10-25',
+                        score: 28,
+                        status: 'bad',
+                        hasCriticalErrors: true,
+                        client: '+7 (999) 123-45-67',
+                        summary: 'Клиент звонил узнать о доставке заказа. Менеджер не смог дать точную информацию.',
+                        transcript: [
+                            { speaker: 'manager', text: 'Алло, здравствуйте' },
+                            { speaker: 'client', text: 'Добрый день, хочу узнать когда будет доставка моего заказа?' },
+                            { speaker: 'manager', text: 'Ну... не знаю, надо посмотреть' },
+                            { speaker: 'client', text: 'А когда посмотрите?' },
+                            { speaker: 'manager', text: 'Ну вот прямо сейчас не могу сказать' }
+                        ],
+                        errors: [
+                            { type: 'critical', text: 'Не выявил потребность', stage: 'Квалификация' },
+                            { type: 'warning', text: 'Использовал слова-паразиты', stage: 'Приветствие' }
+                        ],
+                        recommendation: 'В следующий раз, когда клиент спрашивает о доставке, сразу проверьте статус заказа в системе и дайте конкретную информацию.'
+                    },
+                    {
+                        id: 134847752,
+                        managerId: 1,
+                        managerName: 'Никита Глушаков',
+                        date: '2025-10-25',
+                        score: 85,
+                        status: 'good',
+                        hasCriticalErrors: false,
+                        client: '+7 (999) 234-56-78',
+                        summary: 'Успешная консультация по продукту',
+                        transcript: [
+                            { speaker: 'manager', text: 'Здравствуйте! Меня зовут Никита, чем могу помочь?' },
+                            { speaker: 'client', text: 'Хочу узнать о вашем тарифе Премиум' },
+                            { speaker: 'manager', text: 'Отлично! Тариф Премиум включает...' }
+                        ],
+                        errors: [],
+                        recommendation: 'Отличная работа! Продолжайте в том же духе.'
+                    }
+                ]
+            };
+
+            updateManagerFilter(allData.managers);
+            updateKPI(allData);
+            updateManagersTable(allData.managers);
+        }
+
+        // ========================================
+        // ОБНОВЛЕНИЕ KPI
+        // ========================================
+        function updateKPI(data) {
+            const totalDialogs = data.dialogs.length;
+            const avgScore = totalDialogs > 0 
+                ? Math.round(data.dialogs.reduce((sum, d) => sum + d.score, 0) / totalDialogs) 
+                : 0;
+            const criticalErrors = data.dialogs.filter(d => d.hasCriticalErrors).length;
+            const noErrorsPercent = totalDialogs > 0 
+                ? Math.round(((totalDialogs - criticalErrors) / totalDialogs) * 100) 
+                : 0;
+
+            document.getElementById('kpiTotalDialogs').textContent = totalDialogs.toLocaleString();
+            document.getElementById('kpiAvgScore').textContent = avgScore + '%';
+            document.getElementById('kpiCriticalErrors').textContent = criticalErrors.toLocaleString();
+            document.getElementById('kpiNoErrors').textContent = noErrorsPercent + '%';
+        }
+
+        // ========================================
+        // ОБНОВЛЕНИЕ ТАБЛИЦЫ МЕНЕДЖЕРОВ
+        // ========================================
+        function updateManagersTable(managers) {
+            const tbody = document.getElementById('managersTableBody');
+            
+            if (managers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Нет данных для отображения</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = managers.map(manager => `
+                <tr onclick="showManagerDialogs(${manager.id}, '${manager.name}')">
+                    <td><span class="manager-name">${manager.name}</span></td>
+                    <td>${manager.totalDialogs}</td>
+                    <td><strong>${manager.avgScore}%</strong></td>
+                    <td><span class="status-badge status-bad">${manager.statusBad}</span></td>
+                    <td><span class="status-badge status-medium">${manager.statusMedium}</span></td>
+                    <td><span class="status-badge status-good">${manager.statusGood}</span></td>
+                    <td>
+                        ${manager.criticalErrorsPercent > 50 
+                            ? `<span class="critical-badge">${manager.criticalErrorsPercent}%</span>`
+                            : `${manager.criticalErrorsPercent}%`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ========================================
+        // ПОКАЗАТЬ ДИАЛОГИ МЕНЕДЖЕРА
+        // ========================================
+        function showManagerDialogs(managerId, managerName) {
+            currentManagerId = managerId;
+            
+            const dialogs = allData.dialogs.filter(d => d.managerId === managerId);
+            
+            document.getElementById('managersSection').style.display = 'none';
+            document.getElementById('dialogsSection').classList.add('active');
+            document.getElementById('dialogsTitle').textContent = `📞 Диалоги: ${managerName}`;
+            
+            updateDialogsTable(dialogs);
+        }
+
+        // ========================================
+        // ОБНОВЛЕНИЕ ТАБЛИЦЫ ДИАЛОГОВ
+        // ========================================
+        function updateDialogsTable(dialogs) {
+            const tbody = document.getElementById('dialogsTableBody');
+            
+            if (dialogs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Нет диалогов для отображения</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = dialogs.map(dialog => {
+                const statusIcon = dialog.status === 'bad' ? '🔴' : dialog.status === 'medium' ? '🟡' : '🟢';
+                const statusText = dialog.status === 'bad' ? 'Плохо' : dialog.status === 'medium' ? 'Средне' : 'Отлично';
+                
+                return `
+                    <tr>
+                        <td>${dialog.id.toLocaleString()}</td>
+                        <td>${dialog.managerName}</td>
+                        <td>${formatDate(dialog.date)}</td>
+                        <td><strong>${dialog.score}%</strong></td>
+                        <td>${statusIcon} ${statusText}</td>
+                        <td>${dialog.hasCriticalErrors ? '✓' : '✗'}</td>
+                        <td>
+                            <button class="btn-view" onclick="showDialogDetails(${dialog.id})">
+                                Смотреть
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ========================================
+        // ПОКАЗАТЬ ДЕТАЛИ ДИАЛОГА (МОДАЛЬНОЕ ОКНО)
+        // ========================================
+        function showDialogDetails(dialogId) {
+            const dialog = allData.dialogs.find(d => d.id === dialogId);
+            if (!dialog) return;
+
+            const statusIcon = dialog.status === 'bad' ? '🔴' : dialog.status === 'medium' ? '🟡' : '🟢';
+            const statusText = dialog.status === 'bad' ? 'Плохо' : dialog.status === 'medium' ? 'Средне' : 'Отлично';
+
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <!-- Блок 1: Сводка -->
+                <div class="info-block">
+                    <h3>📋 Сводная информация</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Менеджер</label>
+                            <div class="value">${dialog.managerName}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Клиент</label>
+                            <div class="value">${dialog.client}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Дата</label>
+                            <div class="value">${formatDate(dialog.date)}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Итоговая Оценка</label>
+                            <div class="value">${dialog.score}%</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Статус</label>
+                            <div class="value">${statusIcon} ${statusText}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок 2: Транскрипция -->
+                <div class="info-block">
+                    <h3>💬 Транскрипция диалога</h3>
+                    <div class="transcript">
+                        ${dialog.transcript.map(line => `
+                            <div class="transcript-line ${line.speaker}">
+                                <strong>${line.speaker === 'manager' ? 'Менеджер' : 'Клиент'}:</strong> 
+                                ${line.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Блок 3: Аналитика от AI -->
+                <div class="info-block">
+                    <h3>🤖 Аналитика от AI</h3>
+                    
+                    <h4 style="margin-bottom: 10px;">Краткое содержание:</h4>
+                    <p style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        ${dialog.summary}
+                    </p>
+
+                    ${dialog.errors.length > 0 ? `
+                        <h4 style="margin-bottom: 10px;">Найденные ошибки:</h4>
+                        <ul class="error-list">
+                            ${dialog.errors.map(error => `
+                                <li class="error-item ${error.type}">
+                                    <span class="icon">${error.type === 'critical' ? '🔴' : '🟡'}</span>
+                                    <strong>${error.type === 'critical' ? 'Критическая' : 'Некритическая'}:</strong> 
+                                    ${error.text} 
+                                    <em>(Этап: ${error.stage})</em>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<p style="color: #28a745; font-weight: 600;">✅ Ошибок не обнаружено!</p>'}
+
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">Рекомендация:</h4>
+                    <div class="recommendation">
+                        <strong>💡 </strong>${dialog.recommendation}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = `Анализ диалога #${dialogId.toLocaleString()}`;
+            document.getElementById('dialogModal').classList.add('active');
+        }
+
+        // ========================================
+        // ЗАКРЫТЬ МОДАЛЬНОЕ ОКНО
+        // ========================================
+        function closeModal() {
+            document.getElementById('dialogModal').classList.remove('active');
+        }
+
+        // Закрывать модалку при клике вне её
+        document.getElementById('dialogModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // ========================================
+        // ВЕРНУТЬСЯ К СПИСКУ МЕНЕДЖЕРОВ
+        // ========================================
+        function backToManagers() {
+            currentManagerId = null;
+            document.getElementById('dialogsSection').classList.remove('active');
+            document.getElementById('managersSection').style.display = 'block';
+        }
+
+        // ========================================
+        // СОРТИРОВКА ТАБЛИЦЫ
+        // ========================================
+        function sortTable(columnIndex) {
+            const table = document.getElementById('managersTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Удаляем предыдущие классы сортировки
+            table.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            // Определяем направление сортировки
+            if (sortColumn === columnIndex) {
+                sortAscending = !sortAscending;
+            } else {
+                sortAscending = true;
+                sortColumn = columnIndex;
+            }
+            
+            // Добавляем класс к текущему столбцу
+            const th = table.querySelectorAll('th')[columnIndex];
+            th.classList.add(sortAscending ? 'sorted-asc' : 'sorted-desc');
+            
+            // Сортируем строки
+            rows.sort((a, b) => {
+                let aValue = a.cells[columnIndex].textContent.trim();
+                let bValue = b.cells[columnIndex].textContent.trim();
+                
+                // Удаляем лишние символы для числовых значений
+                aValue = aValue.replace(/[%,]/g, '');
+                bValue = bValue.replace(/[%,]/g, '');
+                
+                // Пробуем преобразовать в число
+                const aNum = parseFloat(aValue);
+                const bNum = parseFloat(bValue);
+                
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return sortAscending ? aNum - bNum : bNum - aNum;
+                } else {
+                    return sortAscending 
+                        ? aValue.localeCompare(bValue) 
+                        : bValue.localeCompare(aValue);
+                }
+            });
+            
+            // Обновляем таблицу
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // ========================================
+        // ФИЛЬТРЫ
+        // ========================================
+        function initializeDateFilters() {
+            const today = new Date();
+            const dateFrom = document.getElementById('dateFrom');
+            const dateTo = document.getElementById('dateTo');
+            
+            dateTo.valueAsDate = today;
+            
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            dateFrom.valueAsDate = weekAgo;
+        }
+
+        function handleDateFilterChange() {
+            const value = document.getElementById('dateFilter').value;
+            const customGroup = document.getElementById('customDateGroup');
+            
+            if (value === 'custom') {
+                customGroup.style.display = 'flex';
+            } else {
+                customGroup.style.display = 'none';
+                applyFilters();
+            }
+        }
+
+        function getCurrentFilters() {
+            return {
+                dateRange: document.getElementById('dateFilter').value,
+                dateFrom: document.getElementById('dateFrom').value,
+                dateTo: document.getElementById('dateTo').value,
+                manager: document.getElementById('managerFilter').value,
+                status: document.getElementById('statusFilter').value
+            };
+        }
+
+        function applyFilters() {
+            // Здесь можно добавить логику фильтрации данных
+            // Для полноценной работы нужно повторно запросить данные из n8n с новыми фильтрами
+            loadDataFromN8N();
+        }
+
+        function resetFilters() {
+            document.getElementById('dateFilter').value = '7days';
+            document.getElementById('managerFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('customDateGroup').style.display = 'none';
+            initializeDateFilters();
+            applyFilters();
+        }
+
+        function updateManagerFilter(managers) {
+            const select = document.getElementById('managerFilter');
+            const currentValue = select.value;
+            
+            select.innerHTML = '<option value="all">Все менеджеры</option>';
+            
+            managers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.id;
+                option.textContent = manager.name;
+                select.appendChild(option);
+            });
+            
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+
+        // ========================================
+        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // ========================================
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            });
+        }
+
+        function showLoading() {
+            const tbody = document.getElementById('managersTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="loading">
+                        <div class="spinner"></div>
+                        <div>Загрузка данных...</div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function showErrorMessage(message) {
+            console.warn(message);
+            // Можно добавить визуальное уведомление для пользователя
+        }
+    </script>
+</body>
+</html>
